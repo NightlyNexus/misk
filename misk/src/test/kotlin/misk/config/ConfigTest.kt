@@ -9,9 +9,11 @@ import misk.inject.getInstance
 import misk.testing.MiskTest
 import misk.testing.MiskTestModule
 import misk.web.WebConfig
+import misk.web.exceptions.ErrorCodeLogLevelConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.slf4j.event.Level
 import java.time.Duration
 import javax.inject.Inject
 import javax.inject.Named
@@ -43,6 +45,9 @@ class ConfigTest {
         assertThat(testConfig.consumer_a).isEqualTo(ConsumerConfig(0, 1))
         assertThat(testConfig.consumer_b).isEqualTo(ConsumerConfig(1, 2))
         assertThat(testConfig.duration).isEqualTo(DurationConfig(Duration.parse("PT1S")))
+        assertThat((testConfig.error_code_log_level)).isEqualTo(
+            ErrorCodeLogLevelConfig(Level.INFO, Level.ERROR)
+        )
     }
 
     @Test

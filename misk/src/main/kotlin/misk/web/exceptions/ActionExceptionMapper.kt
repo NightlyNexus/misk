@@ -6,7 +6,7 @@ import misk.web.ResponseBody
 import misk.web.marshal.StringResponseBody
 import misk.web.mediatype.MediaTypes
 import okhttp3.Headers
-import org.slf4j.event.Level
+import javax.inject.Inject
 
 /**
  * Maps [ActionException]s into the appropriate status code. [ActionException]s corresponding
@@ -15,7 +15,9 @@ import org.slf4j.event.Level
  * are returned with just a status code and minimal messaging, to avoid leaking internal
  * implementation details and possible vulnerabilities
  */
-internal class ActionExceptionMapper : ExceptionMapper<ActionException> {
+internal class ActionExceptionMapper @Inject internal constructor(
+    val config: ErrorCodeLogLevelConfig
+) : ExceptionMapper<ActionException> {
     override fun toResponse(th: ActionException): Response<ResponseBody> {
         val message = if (th.statusCode.isClientError) th.message ?: th.statusCode.name
         else th.statusCode.name
@@ -25,8 +27,8 @@ internal class ActionExceptionMapper : ExceptionMapper<ActionException> {
     override fun canHandle(th: Throwable): Boolean = th is ActionException
 
     override fun loggingLevel(th: ActionException) =
-            if (th.statusCode.isClientError) Level.WARN
-            else Level.ERROR
+            if (th.statusCode.isClientError) config.client_error_level
+            else config.server_error_level
 
     private companion object {
         val HEADERS: Headers =
