@@ -11,9 +11,13 @@ import misk.web.Response
 import misk.web.marshal.StringResponseBody
 import misk.web.mediatype.MediaTypes
 import okhttp3.Headers
+import org.slf4j.event.Level
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.ExecutionException
 import javax.inject.Inject
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSuperclassOf
 
 /**
  * Converts and logs application and component level dispatch exceptions into the appropriate
@@ -24,7 +28,8 @@ import javax.inject.Inject
  */
 class ExceptionHandlingInterceptor(
         private val actionName: String,
-        private val mappers: Set<ExceptionMapper<*>>
+        private val mappers: Set<ExceptionMapper<*>>,
+        private val logLevelMappers: Map<KClass<*>, ExceptionLogLevelMapper<*>>
 ) : Interceptor {
 
     override fun intercept(chain: Chain): Any? = try {
@@ -38,7 +43,7 @@ class ExceptionHandlingInterceptor(
         is InvocationTargetException -> toResponse(th.targetException)
         is UncheckedExecutionException -> toResponse(th.cause!!)
         else -> mapperFor(th)?.let {
-            log.log(it.loggingLevel(th), th) { "exception dispatching to $actionName" }
+            log.log(logLevelFor(th), th) { "exception dispatching to $actionName" }
             it.toResponse(th)
         } ?: toInternalServerError(th)
     }
@@ -47,6 +52,11 @@ class ExceptionHandlingInterceptor(
     private fun mapperFor(th: Throwable): ExceptionMapper<Throwable>? = mappers.firstOrNull {
         it.canHandle(th)
     } as ExceptionMapper<Throwable>?
+
+    private fun logLevelFor(th: Throwable): Level {
+      logLevelMappers.keys.filter { it.isSuperclassOf(th::class) }
+        return Level.INFO
+    }
 
     private fun toInternalServerError(th: Throwable): Response<*> {
         log.error(th) { "unexpected error dispatching to $actionName" }
