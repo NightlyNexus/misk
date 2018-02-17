@@ -12,5 +12,9 @@ data class TestConfig(
     val error_code_log_level: ErrorCodeLogLevelConfig
 ) : Config
 
-data class ConsumerConfig(val min_items: Int = 0, val max_items: Int) : Config
+data class ConsumerConfig(
+    val min_items: Int = 0,
+    val max_items: Int
+) : Config
+
 data class DurationConfig(val interval: Duration) : Config

@@ -10,6 +10,6 @@ import org.slf4j.event.Level
  * @property server_error_level the level used for 5xx error codes
  */
 data class ErrorCodeLogLevelConfig(
-        val client_error_level: Level = Level.WARN,
-        val server_error_level: Level = Level.ERROR
+    val client_error_level: Level = Level.WARN,
+    val server_error_level: Level = Level.ERROR
 ) : Config
